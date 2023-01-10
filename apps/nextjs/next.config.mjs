@@ -11,7 +11,7 @@ const config = {
   swcMinify: true,
   experimental: {
     // Enables hot-reload and easy integration for local packages
-    transpilePackages: ["@acme/api", "@acme/auth", "@acme/db"],
+    transpilePackages: ["@notion-comments/api", "@notion-comments/auth"],
   },
   // We already do linting on GH actions
   eslint: {

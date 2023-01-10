@@ -1,5 +1,4 @@
-import { getServerSession, type Session } from "@acme/auth";
-import { prisma } from "@acme/db";
+import { getServerSession, type Session } from "@notion-comments/auth";
 import { type inferAsyncReturnType } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
@@ -18,7 +17,6 @@ type CreateContextOptions = {
 export const createContextInner = async (opts: CreateContextOptions) => {
   return {
     session: opts.session,
-    prisma,
   };
 };
 

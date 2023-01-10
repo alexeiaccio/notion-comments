@@ -1,5 +1,5 @@
 {
-  "name": "@acme/api",
+  "name": "@notion-comments/api",
   "version": "0.1.0",
   "main": "./index.ts",
   "types": "./index.ts",
@@ -10,15 +10,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@acme/auth": "*",
-    "@acme/db": "*",
-    "@trpc/client": "^10.5.0",
-    "@trpc/server": "^10.5.0",
-    "superjson": "1.9.1",
-    "zod": "^3.20.0"
+    "@notion-comments/auth": "*",
+    "@trpc/client": "^10.7.0",
+    "@trpc/server": "^10.7.0",
+    "superjson": "1.12.1",
+    "zod": "^3.20.2"
   },
   "devDependencies": {
-    "eslint": "^8.29.0",
+    "eslint": "^8.30.0",
     "typescript": "^4.9.4"
   }
 }
