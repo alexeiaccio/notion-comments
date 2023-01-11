@@ -133,7 +133,7 @@ importers:
       '@storybook/react': ^7.0.0-beta.21
       '@storybook/react-vite': ^7.0.0-beta.21
       '@storybook/testing-library': ^0.0.13
-      '@testing-library/react': ^13.4.0
+      '@tanstack/react-virtual': 3.0.0-alpha.0
       '@types/react-test-renderer': ^18.0.0
       '@vitejs/plugin-react': ^3.0.1
       '@vitest/ui': ^0.27.0
@@ -154,6 +154,7 @@ importers:
       vite-plugin-html: ^3.2.0
       vitest: ^0.27.0
     dependencies:
+      '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     devDependencies:
@@ -165,7 +166,6 @@ importers:
       '@storybook/react': 7.0.0-beta.21_o4scbtliisanygemawej7x2d6i
       '@storybook/react-vite': 7.0.0-beta.21_5gzpipz67vwba55m7upc5vvtsu
       '@storybook/testing-library': 0.0.13_biqbaboplfbrettd7655fr4n2y
-      '@testing-library/react': 13.4.0_biqbaboplfbrettd7655fr4n2y
       '@types/react-test-renderer': 18.0.0
       '@vitejs/plugin-react': 3.0.1_vite@4.0.4
       '@vitest/ui': 0.27.0
@@ -2101,6 +2101,10 @@ packages:
     resolution: {integrity: sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==}
     dev: true
 
+  /@reach/observe-rect/1.2.0:
+    resolution: {integrity: sha512-Ba7HmkFgfQxZqqaeIWWkNK0rEhpxVQHIoVyW1YDSkGsGIXzcaW4deC8B0pZrNSSyLTdIk7y+5olKt5+g0GmFIQ==}
+    dev: false
+
   /@rollup/pluginutils/4.2.1:
     resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
     engines: {node: '>= 8.0.0'}
@@ -3249,6 +3253,17 @@ packages:
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
+  /@tanstack/react-virtual/3.0.0-alpha.0_react@18.2.0:
+    resolution: {integrity: sha512-WpHU/dt34NwZZ8qtiE05TF+nX/b1W6qrWZarO+s8jJFpPVicrTbJKp5Bjt4eSJuk7aYw272oEfsH3ABBRgj+3A==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16'
+    dependencies:
+      '@babel/runtime': 7.20.7
+      '@reach/observe-rect': 1.2.0
+      react: 18.2.0
+    dev: false
+
   /@testing-library/dom/8.19.1:
     resolution: {integrity: sha512-P6iIPyYQ+qH8CvGauAqanhVnjrnRe0IZFSYCeGkSRW9q3u8bdVn2NPI+lasFyVsEQn1J/IFmp5Aax41+dAP9wg==}
     engines: {node: '>=12'}
@@ -3261,20 +3276,6 @@ packages:
       dom-accessibility-api: 0.5.15
       lz-string: 1.4.4
       pretty-format: 27.5.1
-    dev: true
-
-  /@testing-library/react/13.4.0_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-sXOGON+WNTh3MLE9rve97ftaZukN3oNf2KjDy7YTx6hcTO2uuLHuCGynMDhFwGw/jYf4OJ2Qk0i4i79qMNNkyw==}
-    engines: {node: '>=12'}
-    peerDependencies:
-      react: ^18.0.0
-      react-dom: ^18.0.0
-    dependencies:
-      '@babel/runtime': 7.20.7
-      '@testing-library/dom': 8.19.1
-      '@types/react-dom': 18.0.10
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
     dev: true
 
   /@testing-library/user-event/13.5.0_ua4wuun3fnehcjqtqj2e2ldgpe:

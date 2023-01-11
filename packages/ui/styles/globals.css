@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#storybook-root {
+  @apply dark:text-white;
+}
+
+button {
+  @apply rounded-sm bg-blue-500 px-2 py-1 text-white hover:bg-blue-700;
+}
+
+button + button {
+  @apply ml-2;
+}

@@ -11,26 +11,32 @@ const meta = {
 
 export default meta;
 
-export const RenderProp: StoryFn<typeof For> = () => {
+function Wrapper({ children }: { children: React.ReactNode }) {
   const [count, setCount] = React.useState(0);
-  const [items, setItems] = React.useState(["0", "1", "2"]);
-
   return (
     <>
       <button onClick={() => setCount((x) => x + 1)}>{count}</button>
-      <button onClick={() => setItems([...items, `${items.length}`])}>
-        {items.length}
-      </button>
-      <button onClick={() => setItems([...items.reverse()])}>
-        {items.length}
-      </button>
-      <For of={items}>
-        {(item, meta) => {
-          console.log("render", item);
+      <div>{children}</div>
+    </>
+  );
+}
 
+export const RenderProp: StoryFn<typeof For> = () => {
+  const [items, setItems] = React.useState(["0", "1", "2"]);
+
+  return (
+    <Wrapper>
+      <button onClick={() => setItems([...items, `${items.length}`])}>
+        Add
+      </button>
+      <button onClick={() => setItems([])}>Remove</button>
+      <button onClick={() => setItems([...items.reverse()])}>Reverse</button>
+      <For of={items} ifEmpty={<div>Nothing there</div>}>
+        {(item, meta) => {
+          // console.log("render", item);
           return <div key={meta?.key}>{item}</div>;
         }}
       </For>
-    </>
+    </Wrapper>
   );
 };
