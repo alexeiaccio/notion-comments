@@ -37,6 +37,8 @@ import { Children, ReactNode } from "react";
  *   else={'This will be shown if someCondition is falsey.'}
  * />
  *
+ * Based on `react-condition`
+ * @see https://github.com/andrewfluck/react-condition
  */
 export function If(
   props:

@@ -1,2 +1,3 @@
 export { For } from "./src/For";
-export { If, Else, ElseIf } from "./src/If";
+export { If, ElseIf, Else } from "./src/If";
+export { Switch, Case, Default } from "./src/Switch";
