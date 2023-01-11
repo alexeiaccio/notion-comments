@@ -1,4 +1,4 @@
-import { Children, ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 
 /**
  * Use the `expression` prop with `<Switch>` element to conditionally include

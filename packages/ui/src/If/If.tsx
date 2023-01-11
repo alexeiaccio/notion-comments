@@ -1,4 +1,4 @@
-import { Children, ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 
 /**
  * Use the `test` prop with `<If>` and `<ElseIf>` elements to conditionally

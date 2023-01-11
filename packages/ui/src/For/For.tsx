@@ -1,6 +1,6 @@
 import React from "react";
 import { forEach, isCollection } from "../utils/iterall";
-import { AnyFunction, AnyObject } from "../utils/types";
+import type { AnyFunction, AnyObject } from "../utils/types";
 
 /**
  * Use the props `of` to provide the list and `as` to provide an element for

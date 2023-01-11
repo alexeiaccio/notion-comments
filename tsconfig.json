@@ -19,7 +19,8 @@
     "jsx": "preserve",
     "incremental": true,
     "suppressImplicitAnyIndexErrors": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "importsNotUsedAsValues": "error",
   },
   "include": [
     ".eslintrc.cjs"
