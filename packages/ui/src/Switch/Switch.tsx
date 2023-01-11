@@ -1,4 +1,5 @@
-import { Children, type ReactNode } from "react";
+import React from "react";
+import type { Children } from "../utils/types";
 
 /**
  * Use the `expression` prop with `<Switch>` element to conditionally include
@@ -55,14 +56,14 @@ import { Children, type ReactNode } from "react";
  */
 export function Switch(props: { expression: any; children: Children }) {
   let match: Children = null;
-  const count = Children.count(props.children);
+  const count = React.Children.count(props.children);
 
   const hasExpression = props.hasOwnProperty("expression");
   if (!hasExpression) {
     throw new TypeError("<Switch> requires an `expression` prop.");
   }
 
-  Children.forEach(props.children, (child, i) => {
+  React.Children.forEach(props.children, (child, i) => {
     if (match) return;
 
     const type =
@@ -163,5 +164,3 @@ export function Default(props: { children?: Children } | { then?: Children }) {
   return <>{null}</>;
 }
 Default.displayName = "Default";
-
-type Children = Array<ReactNode> | ReactNode;

@@ -1,5 +1,5 @@
 import React from "react";
-import { forEach, isCollection } from "../utils/iterall";
+import { forEach, isCollection } from "./iterall";
 import type { AnyFunction, AnyObject } from "../utils/types";
 
 /**

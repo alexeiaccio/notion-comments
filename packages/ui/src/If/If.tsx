@@ -1,4 +1,5 @@
-import { Children, type ReactNode } from "react";
+import React from "react";
+import type { Children } from "../utils/types";
 
 /**
  * Use the `test` prop with `<If>` and `<ElseIf>` elements to conditionally
@@ -69,7 +70,7 @@ export function If(
   if (hasChildren) {
     return (
       <>
-        {Children.map(props.children, function (child) {
+        {React.Children.map(props.children, function (child) {
           const isElse =
             child &&
             typeof child === "object" &&
@@ -96,5 +97,3 @@ export function Else(props: { children: Children }) {
   return <>{props.children}</>;
 }
 Else.displayName = "Else";
-
-type Children = Array<ReactNode> | ReactNode;
