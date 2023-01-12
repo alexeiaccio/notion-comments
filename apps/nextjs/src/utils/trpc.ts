@@ -1,7 +1,7 @@
 // src/utils/trpc.ts
 import { createTRPCNext } from "@trpc/next";
 import { httpBatchLink, loggerLink } from "@trpc/client";
-import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@notion-comments/api";
 import { transformer } from "@notion-comments/api/transformer";
 

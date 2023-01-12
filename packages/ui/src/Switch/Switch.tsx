@@ -1,5 +1,4 @@
 import React from "react";
-import type { Children } from "../utils/types";
 
 /**
  * Use the `expression` prop with `<Switch>` element to conditionally include
@@ -164,3 +163,5 @@ export function Default(props: { children?: Children } | { then?: Children }) {
   return <>{null}</>;
 }
 Default.displayName = "Default";
+
+export type Children = Array<React.ReactNode> | React.ReactNode;

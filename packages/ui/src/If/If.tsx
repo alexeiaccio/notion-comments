@@ -1,5 +1,4 @@
 import React from "react";
-import type { Children } from "../utils/types";
 
 /**
  * Use the `test` prop with `<If>` and `<ElseIf>` elements to conditionally
@@ -28,6 +27,14 @@ import type { Children } from "../utils/types";
  *     </Else>
  *   </If>
  *
+ * Or with `Then` element, if you need some typesafety.
+ *
+ * @example
+ *
+ *  <If test={someCondition}>
+ *    <Then<typeof someCondition>>{(res) => 'This will only be shown if someCondition is truthy and type of res is nonnullable value of someCondition'}</Then>
+ *  </If>
+ *
  * Alternatively, you can provide `then` and `else` props.
  *
  * @example
@@ -38,16 +45,26 @@ import type { Children } from "../utils/types";
  *   else={'This will be shown if someCondition is falsey.'}
  * />
  *
+ * Or with `then` as render props, if you need some typesafety.
+ *
+ * @example
+ *
+ *  <If
+ *   test={someCondition}
+ *   then={(res) => 'This will only be shown if someCondition is truthy and type of res is nonnullable value of someCondition'}
+ *   else={'This will be shown if someCondition is falsey.'}
+ * />
+ *
  * Based on `react-condition`
  * @see https://github.com/andrewfluck/react-condition
  */
-export function If(
+export function If<T>(
   props:
     | {
-        test: any;
-        children: Children;
+        test: T;
+        children: Children<T>;
       }
-    | { test: any; then: Children; else?: Children },
+    | { test: T; then: Children<T>; else?: Children<T> },
 ) {
   const hasTest = props.hasOwnProperty("test");
   if (!hasTest) {
@@ -65,20 +82,43 @@ export function If(
     throw new TypeError("<If> expects either a `then` prop or children.");
   }
   if (hasThen) {
-    return <>{condition ? props.then : hasElse ? props.else ?? null : null}</>;
+    return (
+      <>
+        {condition
+          ? typeof props.then === "function" && props.test
+            ? props.then(props.test)
+            : props.then
+          : hasElse
+          ? props.else ?? null
+          : null}
+      </>
+    );
   }
   if (hasChildren) {
     return (
       <>
         {React.Children.map(props.children, function (child) {
-          const isElse =
+          const type =
             child &&
             typeof child === "object" &&
             "type" in child &&
             typeof child.type === "function" &&
             "displayName" in child.type &&
-            (child.type.displayName === Else.displayName ||
-              child.type.displayName === ElseIf.displayName);
+            child.type.displayName;
+          const isElse =
+            type === Else.displayName || type === ElseIf.displayName;
+          if (
+            type === Then.displayName &&
+            typeof (child as React.ReactElement)?.props?.children ===
+              "function" &&
+            props.test
+          ) {
+            return React.cloneElement(child as React.ReactElement, {
+              children: (child as React.ReactElement).props.children(
+                props.test,
+              ),
+            });
+          }
           return condition !== isElse ? child : null;
         })}
       </>
@@ -97,3 +137,15 @@ export function Else(props: { children: Children }) {
   return <>{props.children}</>;
 }
 Else.displayName = "Else";
+
+export function Then<T>(props: { children: Children<T> }) {
+  if (typeof props.children === "function")
+    return <>{props.children("true" as any)}</>;
+  return <>{props.children}</>;
+}
+Then.displayName = "Then";
+
+export type Children<T = any> =
+  | Array<React.ReactNode | ((arg: NonNullable<T>) => React.ReactNode)>
+  | React.ReactNode
+  | ((arg: NonNullable<T>) => React.ReactNode);
