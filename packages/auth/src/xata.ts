@@ -14,7 +14,6 @@ const tables = [
       { name: "emailVerified", type: "datetime" },
       { name: "name", type: "string" },
       { name: "image", type: "string" },
-      { name: "workspace", type: "string", defaultValue: "undefined" },
     ],
   },
   {

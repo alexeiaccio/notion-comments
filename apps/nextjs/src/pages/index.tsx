@@ -1,6 +1,9 @@
+import { Await } from "@notion-comments/ui";
 import type { NextPage } from "next";
-import Head from "next/head";
 import { signIn, signOut } from "next-auth/react";
+import Head from "next/head";
+import { useState } from "react";
+import { QueryBoundary } from "../components/QueryBoundary";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
@@ -27,19 +30,30 @@ export default Home;
 
 const AuthShowcase: React.FC = () => {
   const { data: session } = trpc.auth.getSession.useQuery();
-
-  const { data: secretMessage } = trpc.auth.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: !!session?.user },
-  );
+  const context = trpc.useContext();
+  const [showMessage, setShowMessage] = useState(false);
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       {session?.user && (
         <p className="text-center text-2xl text-white">
           {session && <span>Logged in as {session?.user?.name}</span>}
-          {secretMessage && <span> - {secretMessage}</span>}
+          <QueryBoundary fallback={<span> – loading...</span>}>
+            {showMessage && <SecretMessage enabled={!!session?.user} />}
+          </QueryBoundary>
         </p>
+      )}
+      {!showMessage && (
+        <button
+          className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+          onClick={() => {
+            context.auth.getSecretMessage.prefetch();
+            setShowMessage(true);
+          }}
+          disabled={!session?.user}
+        >
+          Show message
+        </button>
       )}
       <button
         className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
@@ -50,3 +64,16 @@ const AuthShowcase: React.FC = () => {
     </div>
   );
 };
+
+function SecretMessage({ enabled }: { enabled: boolean }) {
+  const { data: secretMessage } = trpc.auth.getSecretMessage.useQuery(
+    undefined,
+    { enabled, suspense: true },
+  );
+
+  return (
+    <Await resolve={secretMessage}>
+      {(message) => <span> - {message}</span>}
+    </Await>
+  );
+}

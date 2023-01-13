@@ -7,6 +7,11 @@ import { z } from "zod";
  */
 export const serverSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
+  NEXTAUTH_URL: z.string(),
+  NEXTAUTH_SECRET: z.string(),
+  XATA_API_KEY: z.string(),
+  NOTION_ID: z.string(),
+  NOTION_SECRET: z.string(),
 });
 
 /**

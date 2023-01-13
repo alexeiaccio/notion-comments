@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { NextAuthOptions } from "next-auth";
 import { XataClient } from "./xata";
-import { XataAdapter } from "@next-auth/xata-adapter";
-import Notion from "./notion";
+import Notion from "./notion-provider";
+import { XataAdapter } from "./xata-adapter";
 
 const client = new XataClient({
-  apiKey: process.env.XATA_API_KEY ?? "xau_QRvJMCvl6qW0GJXsFq3bIf2uHsaJcjpr7",
+  apiKey: process.env.XATA_API_KEY!,
 });
 
 export const authOptions: NextAuthOptions = {
@@ -13,10 +14,8 @@ export const authOptions: NextAuthOptions = {
   providers: [
     // ...add more providers here
     Notion({
-      clientId: process.env.NOTION_ID ?? "1ef8af53-8d3c-4cc7-bd89-a01be296c6d5",
-      clientSecret:
-        process.env.NOTION_SECRET ??
-        "secret_8kUiZ9AJtxSPQj273t2pFoYPeC3nORXSG7Htw0gV6Fg",
+      clientId: process.env.NOTION_ID!,
+      clientSecret: process.env.NOTION_SECRET!,
     }),
   ],
   callbacks: {

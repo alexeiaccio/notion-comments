@@ -7,16 +7,17 @@
 
 /** @type {import("next").NextConfig} */
 const config = {
-  reactStrictMode: true,
   swcMinify: true,
-  experimental: {
-    // Enables hot-reload and easy integration for local packages
-    transpilePackages: ["@notion-comments/api", "@notion-comments/auth"],
-  },
+  experimental: {},
+  transpilePackages: [
+    "@notion-comments/api",
+    "@notion-comments/auth",
+    "@notion-comments/ui",
+  ],
   // We already do linting on GH actions
-  eslint: {
-    ignoreDuringBuilds: !!process.env.CI,
-  },
+  // eslint: {
+  //   ignoreDuringBuilds: !!process.env.CI,
+  // },
 };
 
 export default config;

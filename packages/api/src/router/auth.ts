@@ -4,8 +4,10 @@ export const authRouter = router({
   getSession: publicProcedure.query(({ ctx }) => {
     return ctx.session;
   }),
-  getSecretMessage: protectedProcedure.query(() => {
-    // testing type validation of overridden next-auth Session in @acme/auth package
+  getSecretMessage: protectedProcedure.query(async () => {
+    await new Promise((resolve) => {
+      setTimeout(() => void resolve(null), 1000);
+    });
     return "you can see this secret message!";
   }),
 });

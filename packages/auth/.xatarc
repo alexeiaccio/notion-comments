@@ -1,6 +1,6 @@
 {
   "databaseURL": "https://accio-workspace-jvrgge.eu-west-1.xata.sh/db/notion-comments",
   "codegen": {
-    "output": "packages/auth/src/xata.ts"
+    "output": "src/xata.ts"
   }
 }
