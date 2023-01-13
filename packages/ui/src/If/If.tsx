@@ -62,9 +62,9 @@ export function If<T>(
   props:
     | {
         test: T;
-        children: Children<T>;
+        children: RenderProps<T>;
       }
-    | { test: T; then: Children<T>; else?: Children<T> },
+    | { test: T; then: RenderProps<T>; else?: Children },
 ) {
   const hasTest = props.hasOwnProperty("test");
   if (!hasTest) {
@@ -138,14 +138,16 @@ export function Else(props: { children: Children }) {
 }
 Else.displayName = "Else";
 
-export function Then<T>(props: { children: Children<T> }) {
+export function Then<T>(props: { children: RenderProps<T> }) {
   if (typeof props.children === "function")
     return <>{props.children("true" as any)}</>;
   return <>{props.children}</>;
 }
 Then.displayName = "Then";
 
-export type Children<T = any> =
+type RenderProps<T = any> =
   | Array<React.ReactNode | ((arg: NonNullable<T>) => React.ReactNode)>
   | React.ReactNode
   | ((arg: NonNullable<T>) => React.ReactNode);
+
+type Children = Array<React.ReactNode> | React.ReactNode;

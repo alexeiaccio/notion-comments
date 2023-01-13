@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 
 export interface ShowProps<T = any> {
-  resolve: TrackedPromise<T> | T;
+  when: TrackedPromise<T> | T;
   children: React.ReactNode | AwaitResolveRenderFunction<T>;
   errorElement?: React.ReactNode | AwaitResolveRenderFunction<unknown>;
   fallback?: React.ReactNode;
@@ -12,7 +12,7 @@ export interface ShowProps<T = any> {
  *
  * @example
  *
- *  <Show resolve={somePromise}>
+ *  <Show when={somePromise}>
  *    {(res: Awaited<typeof somePromise>) => <div>{res.data}</div>}
  *  </Show>
  *
@@ -21,11 +21,26 @@ export interface ShowProps<T = any> {
  * @example
  *
  *  <Show
- *    resolve={somePromise}
+ *    when={somePromise}
  *    errorElement={(e: unknown) => <div>{e.message}</div>}
  *  >
  *    {...}
  *  </Show>
+ *
+ * And you can get access to promise data in child component via `useAsyncData` hook.
+ *
+ * @example
+ *
+ *  <Show when={somePromise}>
+ *    <ChildComponent />
+ *  </Show>
+ *
+ * then in `ChildComponent`:
+ *
+ *  function ChildComponent() {
+ *    const data: unknown = useAsyncData();
+ *    return <div>{data.data}</div>;
+ *  }
  *
  * Based on `Await` component from `@remix-run/react-router`
  * @see https://github.com/remix-run/react-router
@@ -34,12 +49,42 @@ export function Show<T = any>(props: ShowProps<T>) {
   return (
     <Suspense fallback={props.fallback}>
       <AwaitErrorBoundary
-        resolve={props.resolve}
+        resolve={props.when}
         errorElement={<ResolveError>{props.errorElement}</ResolveError>}
       >
         <ResolveAwait<T>>{props.children}</ResolveAwait>
       </AwaitErrorBoundary>
     </Suspense>
+  );
+}
+
+/**
+ * Component to use for rendering the value of a Promise.
+ *
+ * @example
+ *
+ *  <Suspense fallback={<div>Loading...</div>}>
+ *   <Await resolve={somePromise}>
+ *     {(res: Awaited<typeof somePromise>) => <div>{res.data}</div>}
+ *   </Await>
+ *  </Suspense>
+ *
+ * Based on `Await` component from `@remix-run/react-router`
+ * @see https://github.com/remix-run/react-router
+ */
+export interface AwaitProps<T = any> {
+  resolve: TrackedPromise<T> | T;
+  children: React.ReactNode | AwaitResolveRenderFunction<T>;
+  errorElement?: React.ReactNode | AwaitResolveRenderFunction<unknown>;
+}
+export function Await<T = any>(props: AwaitProps<T>) {
+  return (
+    <AwaitErrorBoundary
+      resolve={props.resolve}
+      errorElement={<ResolveError>{props.errorElement}</ResolveError>}
+    >
+      <ResolveAwait<T>>{props.children}</ResolveAwait>
+    </AwaitErrorBoundary>
   );
 }
 
@@ -57,7 +102,7 @@ AwaitContext.displayName = "Await";
 /**
  * Returns the happy-path data from the nearest ancestor <Await /> value
  */
-function useAsyncValue<T = any>(): Awaited<T> {
+export function useAsyncValue<T = any>(): Awaited<T> {
   const value = React.useContext(AwaitContext);
   return value?._data as Awaited<T>;
 }
@@ -65,7 +110,7 @@ function useAsyncValue<T = any>(): Awaited<T> {
 /**
  * Returns the error from the nearest ancestor <Await /> value
  */
-function useAsyncError(): unknown {
+export function useAsyncError(): unknown {
   const value = React.useContext(AwaitContext);
   return value?._error;
 }

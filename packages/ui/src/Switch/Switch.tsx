@@ -164,4 +164,4 @@ export function Default(props: { children?: Children } | { then?: Children }) {
 }
 Default.displayName = "Default";
 
-export type Children = Array<React.ReactNode> | React.ReactNode;
+type Children = Array<React.ReactNode> | React.ReactNode;

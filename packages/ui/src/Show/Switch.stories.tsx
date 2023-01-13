@@ -1,5 +1,6 @@
 import type { Meta, StoryFn } from "@storybook/react";
 import React from "react";
+import { If } from "../If";
 
 import { Show } from "./Show";
 
@@ -19,7 +20,7 @@ export const WithFallback: StoryFn<typeof Show> = () => {
   });
 
   return (
-    <Show resolve={promise} fallback={<div>Loading...</div>}>
+    <Show when={promise} fallback={<div>Loading...</div>}>
       {(res) => {
         return <div>{res.value}</div>;
       }}
@@ -36,7 +37,7 @@ export const WithError: StoryFn<typeof Show> = () => {
 
   return (
     <Show
-      resolve={promise}
+      when={promise}
       fallback={<div>Loading...</div>}
       errorElement={(e) => (
         <div>
@@ -56,8 +57,33 @@ export const WithValue: StoryFn<typeof Show> = () => {
   const data = { value: "Value!" };
 
   return (
-    <Show resolve={data} fallback={<div>Loading...</div>}>
+    <Show when={data} fallback={<div>Loading...</div>}>
       <div>{data.value}</div>
+    </Show>
+  );
+};
+
+export const WithFalsableValue: StoryFn<typeof Show> = () => {
+  const promise = new Promise<{ value: string } | null>((resolve) => {
+    const random = Math.random();
+    return setTimeout(() => {
+      if (random < 0.5) {
+        resolve(null);
+      } else {
+        resolve({ value: "Value!" });
+      }
+    }, 1000);
+  });
+
+  return (
+    <Show when={promise} fallback={<div>Loading...</div>}>
+      {(res) => (
+        <If
+          test={res}
+          then={({ value }) => <div>{value}</div>}
+          else={<div>No value</div>}
+        />
+      )}
     </Show>
   );
 };
