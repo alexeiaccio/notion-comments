@@ -13,7 +13,7 @@ export interface ShowProps<T = any> {
  * @example
  *
  *  <Show resolve={somePromise}>
- *    {(res: NonNullable<Awaited<typeof somePromise>>) => <div>{res.data}</div>}
+ *    {(res: Awaited<typeof somePromise>) => <div>{res.data}</div>}
  *  </Show>
  *
  * Also you can get access to error in the `errorElement` prop.
