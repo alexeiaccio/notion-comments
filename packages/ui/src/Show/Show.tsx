@@ -27,7 +27,7 @@ export interface ShowProps<T = any> {
  *    {...}
  *  </Show>
  *
- * Based on `Await` component from @remix-run/react-router
+ * Based on `Await` component from `@remix-run/react-router`
  * @see https://github.com/remix-run/react-router
  */
 export function Show<T = any>(props: ShowProps<T>) {
