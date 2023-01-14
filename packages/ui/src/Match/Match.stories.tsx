@@ -38,7 +38,7 @@ export const WithThen: StoryFn<typeof Component> = () => {
             pattern="blue"
             then={(value) => <div style={{ color: value }}>{value}</div>}
           />
-          <Match.Default then={(value) => <div>{value}</div>} />
+          <Match.Otherwise then={(value) => <div>{value}</div>} />
         </Match.Root>
       </div>
     </>
@@ -106,7 +106,7 @@ const reducer = (state: State, event: Event): State =>
     .with(P._, () => state)
     .otherwise(() => state);
 
-const MatchWithReducer = createMatch<State<{ value: string }>>();
+const MatchWithReducer = createMatch<State>();
 
 export const WithReducer: StoryFn<typeof Component> = () => {
   const [state, dispatch] = React.useReducer(reducer, initState);
@@ -178,7 +178,7 @@ export const WithReducer: StoryFn<typeof Component> = () => {
               </>
             )}
           </MatchWithReducer.With>
-          <MatchWithReducer.Default>Default</MatchWithReducer.Default>
+          <MatchWithReducer.Otherwise>Otherwise</MatchWithReducer.Otherwise>
         </MatchWithReducer.Root>
       </div>
     </>

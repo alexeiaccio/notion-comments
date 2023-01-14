@@ -12,7 +12,7 @@ interface MatchProps<T = any> {
  * certain elements. When an `<Match>` compares a value from `<With>` and the
  * comparison is _truthy_ it _only_ renders the matching child. However, when
  * the comparison is _falsey_ it continues through the children until it finds
- * a match, or falls back to `<Default>`.
+ * a match, or falls back to `<Otherwise>`.
  *
  * @example
  *
@@ -40,13 +40,13 @@ interface MatchProps<T = any> {
  *       <With pattern={"blue"}>
  *           blue
  *       </With>
- *       <Default>
+ *       <Otherwise>
  *           no color
- *       </Default>
+ *       </Otherwise>
  *   </Match>
  *
  *
- * Alternatively, you can provide `then` as props to `<With>` or `<Default>`
+ * Alternatively, you can provide `then` as props to `<With>` or `<Otherwise>`
  *
  * @example
  *
@@ -54,7 +54,7 @@ interface MatchProps<T = any> {
  *       <With pattern={"red"} then={"red"} />
  *       <With pattern={"red"} then={"green"} />
  *       <With pattern={"red"} then={"blue"} />
- *       <Default then={"no color"} />
+ *       <Otherwise then={"no color"} />
  *   </Match>
  *
  */
@@ -79,11 +79,11 @@ export function Match<T = any>(props: MatchProps<T>) {
 
     if (
       type !== With.displayName &&
-      type !== Default.displayName &&
+      type !== Otherwise.displayName &&
       child !== null
     ) {
       throw new TypeError(
-        "<Match> requires a child of type <With>, <Default>, or null.",
+        "<Match> requires a child of type <With>, <Otherwise>, or null.",
       );
     }
 
@@ -101,7 +101,7 @@ export function Match<T = any>(props: MatchProps<T>) {
     }
 
     if (i + 1 === count) {
-      if (type === Default.displayName) {
+      if (type === Otherwise.displayName) {
         if (child && typeof child === "object" && "props" in child) {
           matcher = matcher.with(
             P._,
@@ -118,9 +118,9 @@ export function Match<T = any>(props: MatchProps<T>) {
         matcher = matcher.with(P._, () => null as any);
       }
     } else {
-      if (type === Default.displayName) {
+      if (type === Otherwise.displayName) {
         throw new TypeError(
-          "<Default> is required to be the last node if present.",
+          "<Otherwise> is required to be the last node if present.",
         );
       }
     }
@@ -157,23 +157,23 @@ export function With<T = any>(props: WithProps<T>) {
 }
 With.displayName = "With";
 
-type DefaultProps<T = any> =
+type OtherwiseProps<T = any> =
   | { children?: ((arg: T) => Children) | Children }
   | { then?: ((arg: T) => Children) | Children };
 
-export function Default<T = any>(props: DefaultProps<T>) {
+export function Otherwise<T = any>(props: OtherwiseProps<T>) {
   const hasThen = props.hasOwnProperty("then");
 
   // @ts-expect-error - it's ok
   if ((hasThen ^ props.hasOwnProperty("children")) === 0) {
     throw new TypeError(
-      "<Default> expects either a `then` prop or children. Remove <Default> for null.",
+      "<Otherwise> expects either a `then` prop or children. Remove <Otherwise> for null.",
     );
   }
 
   return <>{null}</>;
 }
-Default.displayName = "Default";
+Otherwise.displayName = "Otherwise";
 
 export const createMatch = <TState,>() => {
   const components = {
@@ -181,11 +181,11 @@ export const createMatch = <TState,>() => {
     With: <TPattern extends PType.Pattern<TState>>(
       props: WithProps<TPattern, Extract<TState, TPattern>>,
     ) => <With {...props} />,
-    Default: (props: DefaultProps<TState>) => <Default {...props} />,
+    Otherwise: (props: OtherwiseProps<TState>) => <Otherwise {...props} />,
   } as const satisfies Record<string, React.FC<any>>;
   Match.displayName = "Root";
   With.displayName = "With";
-  Default.displayName = "Default";
+  Otherwise.displayName = "Otherwise";
   return components;
 };
 
