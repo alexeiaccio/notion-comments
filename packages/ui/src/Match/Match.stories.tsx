@@ -184,3 +184,5 @@ export const WithReducer: StoryFn<typeof Component> = () => {
     </>
   );
 };
+
+// TODO: more examples with different patterns: https://github.com/gvergnaud/ts-pattern

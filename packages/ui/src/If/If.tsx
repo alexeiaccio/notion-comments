@@ -27,7 +27,7 @@ import React from "react";
  *     </Else>
  *   </If>
  *
- * Or with `Then` element, if you need some typesafety.
+ * Or with `Then` element, if you need some type-safety.
  *
  * @example
  *
@@ -45,7 +45,7 @@ import React from "react";
  *   else={'This will be shown if someCondition is falsey.'}
  * />
  *
- * Or with `then` as render props, if you need some typesafety.
+ * Or with `then` as render props, if you need some type-safety.
  *
  * @example
  *

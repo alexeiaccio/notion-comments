@@ -14,6 +14,35 @@ interface MatchProps<T = any> {
  * the comparison is _falsey_ it continues through the children until it finds
  * a match, or falls back to `<Otherwise>`.
  *
+ * For pattern-matching we use `ts-pattern`:
+ * @see https://github.com/gvergnaud/ts-pattern
+ *
+ * For full type-safety create `Match` with `createMatch<UnionOfAllOptions>()`
+ *
+ * @example
+ *
+ *   type State<T> = | { status: "idle" } | { status: "loading" } | { status: "success"; data: T } | { status: "error"; error: Error };
+ *
+ *   const Match = createMatch<State>();
+ *
+ *   <Match.Root expression={state}>
+ *      <Match.With pattern={{ status: "error" }}>
+ *        {({ error }) => <p>Error! "{error.message}"</p>)}
+ *      </Match.With>
+ *      <Match.With pattern={{ status: "success" }}>
+ *         {({ data }) => <p>Success! data: {data.value}</p>)}
+ *            // ^? {data.value} – argument type infers correctly.
+ *      </Match.With>
+ *      <Match.With pattern={{ status: "idle" }}>
+ *        {() => <p>Nothing is happening at the moment</p>}
+ *      </Match.With>
+ *      <Match.With pattern={{ status: "loading" }}>
+ *        {() => <p>Loading... (you can click on success, error, or cancel)</p>)}
+ *      </Match.With>
+ *  </Match.Root>
+ *
+ * Or just like the example below:
+ *
  * @example
  *
  *   <Match expression={"blue"}>
@@ -26,25 +55,10 @@ interface MatchProps<T = any> {
  *       <With pattern={"blue"}>
  *           blue
  *       </With>
- *   </Match>
- *
- * @example
- *
- *   <Match expression={"hot fucking pink"}>
- *       <With pattern={"red"}>
- *           red
- *       </With>
- *       <With pattern={"green"}>
- *           green
- *       </With>
- *       <With pattern={"blue"}>
- *           blue
- *       </With>
- *       <Otherwise>
+ *        <Otherwise>
  *           no color
  *       </Otherwise>
  *   </Match>
- *
  *
  * Alternatively, you can provide `then` as props to `<With>` or `<Otherwise>`
  *
