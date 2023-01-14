@@ -38,10 +38,6 @@ export const WithThen: StoryFn<typeof Component> = () => {
             pattern="blue"
             then={(value) => <div style={{ color: value }}>{value}</div>}
           />
-          <Match.With
-            pattern="hot fucking pink"
-            then={(value) => <div style={{ color: "deeppink" }}>{value}</div>}
-          />
           <Match.Default then={(value) => <div>{value}</div>} />
         </Match.Root>
       </div>
@@ -174,14 +170,14 @@ export const WithReducer: StoryFn<typeof Component> = () => {
               </>
             )}
           </MatchWithReducer.With>
-          {/* <MatchWithReducer.With pattern={{ status: "loading" }}>
+          <MatchWithReducer.With pattern={{ status: "loading" }}>
             {({ status }) => (
               <>
                 <h1 className="capitalize">{status}...</h1>
                 <p>(you can click on success, error, or cancel)</p>
               </>
             )}
-          </MatchWithReducer.With> */}
+          </MatchWithReducer.With>
           <MatchWithReducer.Default>Default</MatchWithReducer.Default>
         </MatchWithReducer.Root>
       </div>
