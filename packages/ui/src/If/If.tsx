@@ -128,7 +128,11 @@ export function If<T>(
 }
 If.displayName = "If";
 
-export function ElseIf(props: { test: any; children: Children }) {
+export function ElseIf<T = any>(
+  props:
+    | { test: any; children: RenderProps<T> }
+    | { test: any; then: RenderProps<T> },
+) {
   return <If {...props} />;
 }
 ElseIf.displayName = "ElseIf";
@@ -138,7 +142,7 @@ export function Else(props: { children: Children }) {
 }
 Else.displayName = "Else";
 
-export function Then<T>(props: { children: RenderProps<T> }) {
+export function Then<T>(props: { test?: T; children: RenderProps<T> }) {
   if (typeof props.children === "function")
     return <>{props.children("true" as any)}</>;
   return <>{props.children}</>;

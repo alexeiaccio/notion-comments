@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 export interface ShowProps<T = any> {
   when: TrackedPromise<T> | T;
   children: React.ReactNode | AwaitResolveRenderFunction<T>;
-  errorElement?: React.ReactNode | AwaitResolveRenderFunction<unknown>;
+  errorElement?: React.ReactNode | AwaitResolveRenderFunction<Error>;
   fallback?: React.ReactNode;
 }
 
@@ -50,7 +50,11 @@ export function Show<T = any>(props: ShowProps<T>) {
     <Suspense fallback={props.fallback}>
       <AwaitErrorBoundary
         resolve={props.when}
-        errorElement={<ResolveError>{props.errorElement}</ResolveError>}
+        errorElement={
+          props.errorElement ? (
+            <ResolveError>{props.errorElement}</ResolveError>
+          ) : undefined
+        }
       >
         <ResolveAwait<T>>{props.children}</ResolveAwait>
       </AwaitErrorBoundary>
@@ -75,13 +79,17 @@ export function Show<T = any>(props: ShowProps<T>) {
 export interface AwaitProps<T = any> {
   resolve: TrackedPromise<T> | T;
   children: React.ReactNode | AwaitResolveRenderFunction<T>;
-  errorElement?: React.ReactNode | AwaitResolveRenderFunction<unknown>;
+  errorElement?: React.ReactNode | AwaitResolveRenderFunction<Error>;
 }
 export function Await<T = any>(props: AwaitProps<T>) {
   return (
     <AwaitErrorBoundary
       resolve={props.resolve}
-      errorElement={<ResolveError>{props.errorElement}</ResolveError>}
+      errorElement={
+        props.errorElement ? (
+          <ResolveError>{props.errorElement}</ResolveError>
+        ) : undefined
+      }
     >
       <ResolveAwait<T>>{props.children}</ResolveAwait>
     </AwaitErrorBoundary>
