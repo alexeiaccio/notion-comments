@@ -15,6 +15,9 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "ariakit": "2.0.0-next.43",
+    "ariakit-react-utils": "0.17.0-next.27",
+    "ariakit-utils": "0.17.0-next.27",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "ts-pattern": "^4.1.3"
