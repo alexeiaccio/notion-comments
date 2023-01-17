@@ -1,7 +1,5 @@
-import type { CollectionItemOptions } from "ariakit";
 import {
   useControlledState,
-  useForkRef,
   useInitialValue,
   useSafeLayoutEffect,
 } from "ariakit-react-utils/hooks";
@@ -12,19 +10,20 @@ import {
   useStorePublisher,
 } from "ariakit-react-utils/store";
 import type { SetState } from "ariakit-utils/types";
-import { hasOwnProperty, noop } from "ariakit-utils/misc";
-import {
-  CollectionState,
-  useCollectionState,
-} from "ariakit/collection/collection-state";
-import React, { useMemo, useRef } from "react";
-import { matchPattern, symbols } from "./ts-pattern/internals";
-import { P } from "./ts-pattern";
+import { noop } from "ariakit-utils/misc";
+import React from "react";
+import * as symbols from "../ts-pattern/internals/symbols";
+import { matchPattern } from "../ts-pattern/internals/helpers";
+import * as P from "../ts-pattern/patterns";
+import type { Pattern } from "../ts-pattern/types/Pattern";
+import type { MatchedValue, PickReturnValue } from "../ts-pattern/types/Match";
+import type { FindSelected } from "../ts-pattern/types/FindSelected";
+import type { InvertPattern } from "../ts-pattern/types/InvertPattern";
 
 interface MatchProps<T = any> {
   state: MatchState<T>;
-  expression: T | undefined;
-  children: Children;
+  value: T | undefined;
+  children: React.ReactElement<WithProps<T>>[];
 }
 
 /**
@@ -95,37 +94,109 @@ interface MatchProps<T = any> {
 export function Match<T = any>({ state, ...props }: MatchProps<T>) {
   const { wrapElement } = useStoreProvider({ state, ...props }, MatchContext);
 
-  return wrapElement(<>{props.children}</>);
+  return (
+    <>
+      {wrapElement(
+        <>
+          {React.Children.map(props.children, (child, id) =>
+            React.cloneElement(child, { id }),
+          )}
+        </>,
+      )}
+      <Run state={state} {...props} />
+    </>
+  );
 }
 if (process.env.NODE_ENV !== "production") {
   Match.displayName = "Match";
 }
 
-type WithProps<TPattern = any, TData = any> = Omit<
-  CollectionItemOptions,
-  "state"
-> & {
+function Run({ state, ...props }: MatchProps<any>) {
+  const count = React.Children.count(props.children);
+  const children: Array<React.ReactNode> = [];
+  React.Children.forEach(props.children, (child, i) => {
+    const name = child.props.name;
+    const withName = "With";
+    const whenName = "When";
+    const otherwiseName = "Otherwise";
+    if (
+      name !== withName &&
+      name !== whenName &&
+      name !== otherwiseName &&
+      child !== null
+    ) {
+      throw new TypeError(
+        "<Match> requires a child of type <With>, <When>,  <Otherwise>, or null.",
+      );
+    }
+    if (i + 1 !== count && name === otherwiseName) {
+      throw new TypeError(
+        "<Otherwise> is required to be the last node if present.",
+      );
+    }
+
+    const caseState = state.cases[i];
+    if (!caseState) return null;
+    const match = caseState.match(state.value);
+    if (
+      match.matched &&
+      (!children.length || name !== otherwiseName || i + 1 !== count)
+    ) {
+      children.push(
+        React.createElement(
+          React.Fragment,
+          { key: `${state.id}-${i}` },
+          caseState.handler(match.value, state.value),
+        ),
+      );
+    }
+  });
+  return <>{children}</>;
+}
+
+type WithProps<
+  TPattern,
+  TGuard = TPattern,
+  TValue extends MatchedValue<TPattern, InvertPattern<TPattern>> = any,
+> = {
   state?: MatchState<TPattern>;
-  pattern: TPattern | TPattern[];
-  guard?: (value: TPattern) => unknown;
-  handler?: (arg: TData) => Children;
-  children?: (arg: TData) => Children;
+  pattern: Pattern<TPattern> | Array<Pattern<TPattern>>;
+  guard?: (value: TPattern) => boolean;
+  handler?: (
+    selections: PickReturnValue<TPattern, TGuard>,
+    value: TPattern,
+  ) => Children;
+  children?: (
+    selections: FindSelected<TValue, TPattern>,
+    value: TPattern,
+  ) => Children;
+  /** @private */
+  id?: number;
+  /** @private */
+  name?: string;
 };
 
-export function With<T = any>({
-  state: stateProp,
-  pattern,
-  guard,
-  handler,
-  children,
-  ...props
-}: WithProps<T>) {
-  const state = useStore(stateProp || MatchContext, ["value", "registerItem"]);
-  const matcher = useMemo(() => {
+export function With<TPattern>(props: WithProps<TPattern>) {
+  const state = useStore(props.state || MatchContext, ["id", "setCases"]);
+  const { pattern, guard, handler, children, name = "With" } = props;
+  const hasValue = Boolean(pattern);
+  const hasHandler = Boolean(handler);
+  if (!hasValue && name !== "Otherwise") {
+    throw new TypeError(`<${name}> requires an 'pattern' prop.`);
+  }
+  // @ts-expect-error - it's ok
+  if ((hasHandler ^ Boolean(children)) === 0) {
+    throw new TypeError(
+      `<${name}> expects either a 'handler' prop or 'children'.`,
+    );
+  }
+
+  useSafeLayoutEffect(() => {
     const patterns = Array.isArray(pattern) ? pattern : [pattern];
     const predicates = guard ? (Array.isArray(guard) ? guard : [guard]) : [];
-    return {
-      match: (value: T) => {
+    const matcher = {
+      name: `${name}.${state.id}.${props.id}`,
+      match: (value: TPattern) => {
         const selected: Record<string, unknown> = {};
         const matched = Boolean(
           patterns.some((pattern) =>
@@ -146,45 +217,97 @@ export function With<T = any>({
       },
       handler: handler ?? children ?? noop,
     };
-  }, [pattern, guard, handler, children]);
+    state.setCases((prevCases: MatchState["cases"]) =>
+      prevCases.every((item) => item.name !== matcher.name)
+        ? [...prevCases, matcher]
+        : prevCases,
+    );
+  }, [state.setCases, pattern]);
 
-  const ref = useRef<HTMLElement>(null);
-  useSafeLayoutEffect(() => {
-    return state.registerItem?.({ ref });
-  }, [state.registerItem]);
-
-  const hasValue = Boolean(pattern);
-  const hasHandler = Boolean(handler);
-  if (!hasValue) {
-    throw new TypeError("<With> requires an `pattern` prop.");
-  }
-  // @ts-expect-error - it's ok
-  if ((hasHandler ^ Boolean(children)) === 0) {
-    throw new TypeError("<With> expects either a `handler` prop or children.");
-  }
-
-  return (
-    <div
-      ref={useForkRef(ref)}
-      style={{
-        display: matcher.match(state.value)?.matched ? "block" : "none",
-      }}
-      {...(!matcher.match(state.value)?.matched && { "aria-hidden": true })}
-      {...props}
-    >
-      {matcher.handler(state.value)}
-    </div>
-  );
+  return null;
 }
+With.defaultProps = {
+  name: "With",
+};
 if (process.env.NODE_ENV !== "production") {
   With.displayName = "With";
 }
 
-type OtherwiseProps<T = any> = Pick<WithProps<any, T>, "children" | "handler">;
+type WhenProps<TValue> = Pick<
+  WithProps<TValue>,
+  "children" | "handler" | "id" | "name"
+> & {
+  state?: MatchState<TValue>;
+  predicate: (value: TValue) => unknown;
+};
 
-export function Otherwise<T = any>(props: OtherwiseProps<T>) {
-  return <With pattern={P._} {...props} />;
+export function When<TValue>(props: WhenProps<TValue>) {
+  const state = useStore(props.state || MatchContext, ["id", "setCases"]);
+  const { predicate, handler, children, name = "When" } = props;
+  const hasValue = Boolean(predicate);
+  const hasHandler = Boolean(handler);
+  if (!hasValue && name !== "Otherwise") {
+    throw new TypeError(`<${name}> requires an 'predicate' prop.`);
+  }
+  // @ts-expect-error - it's ok
+  if ((hasHandler ^ Boolean(children)) === 0) {
+    throw new TypeError(
+      `<${name}> expects either a 'handler' prop or 'children'.`,
+    );
+  }
+
+  useSafeLayoutEffect(() => {
+    const predicates = predicate
+      ? Array.isArray(predicate)
+        ? predicate
+        : [predicate]
+      : [];
+    const matcher = {
+      name: `${name}.${state.id}.${props.id}`,
+      match: (value: TValue) => {
+        const selected: Record<string, unknown> = {};
+        const matched = Boolean(
+          predicates.every((predicate) => predicate(value as any)),
+        );
+        return {
+          matched,
+          value:
+            matched && Object.keys(selected).length
+              ? symbols.anonymousSelectKey in selected
+                ? selected[symbols.anonymousSelectKey]
+                : selected
+              : value,
+        };
+      },
+      handler: handler ?? children ?? noop,
+    };
+    state.setCases((prevCases: MatchState["cases"]) =>
+      prevCases.every((item) => item.name !== matcher.name)
+        ? [...prevCases, matcher]
+        : prevCases,
+    );
+  }, [state.setCases, predicate]);
+
+  return null;
 }
+When.defaultProps = {
+  name: "When",
+};
+if (process.env.NODE_ENV !== "production") {
+  When.displayName = "When";
+}
+
+type OtherwiseProps<TPattern> = Pick<
+  WithProps<TPattern>,
+  "children" | "handler"
+>;
+
+export function Otherwise<TPattern>(props: OtherwiseProps<TPattern>) {
+  return <With pattern={P.any} {...props} />;
+}
+Otherwise.defaultProps = {
+  name: "Otherwise",
+};
 if (process.env.NODE_ENV !== "production") {
   Otherwise.displayName = "Otherwise";
 }
@@ -192,7 +315,7 @@ if (process.env.NODE_ENV !== "production") {
 const MatchContext = createStoreContext<MatchState>();
 
 export function useMatchState<i>(props: MatchStateProps<i>) {
-  const collection = useCollectionState<MatchStateItem>();
+  const id = React.useId();
   const defaultValue = useInitialValue(
     props.defaultValue || (undefined as MatchState<i>["value"]),
   );
@@ -201,48 +324,49 @@ export function useMatchState<i>(props: MatchStateProps<i>) {
     props.value,
     props.setValue,
   );
+  const [cases, setCases] = useControlledState([]);
 
   const state = React.useMemo<MatchState<i>>(
     () => ({
-      ...collection,
+      id,
       value,
       setValue,
+      cases,
+      setCases,
     }),
-    [collection, value, setValue],
+    [value, setValue, cases, setCases],
   );
 
   return useStorePublisher(state);
 }
 
-// function findItem(
-//   items: MatchState["items"] | undefined,
-//   type: MatchStateItem["type"],
-// ) {
-//   return items?.find((item) => item.type === type);
-// }
-
-// function useItem(state: MatchState | undefined, type: MatchStateItem["type"]) {
-//   return useMemo(() => findItem(state?.items, type), [state?.items, type]);
-// }
-
-type MatchState<i = any> = CollectionState<MatchStateItem> & {
-  value: i;
-  setValue: SetState<MatchState<i>["value"]>;
+type MatchState<TValue = any> = {
+  id: string;
+  value: TValue;
+  setValue: SetState<MatchState<TValue>["value"]>;
+  cases: Array<{
+    name: string;
+    match: (value: any) => { matched: boolean; value: any };
+    handler: (...args: any) => any;
+  }>;
+  setCases: SetState<MatchState<TValue>["cases"]>;
 };
 
-type MatchStateItem = CollectionState["items"][number] & {
-  type: "with" | "when" | "wildcard" | "otherwise";
-  pattern: any;
-  guard?: any;
-  handler?: any;
-  id?: string;
-};
-
-type MatchStateProps<i> = {
-  defaultValue?: i;
-  value?: i;
-  setValue?: (values: MatchState<i>["value"]) => void;
+type MatchStateProps<TValue> = {
+  defaultValue?: TValue;
+  value?: TValue;
+  setValue?: (values: MatchState<TValue>["value"]) => void;
   exhaustive?: boolean;
 };
 
 type Children = Array<React.ReactNode> | React.ReactNode;
+
+// type XOR<T, U> = T | U extends object
+//   ? (Without<T, U> & U) | (Without<U, T> & T)
+//   : T | U;
+// type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+
+// export type RenderProps<T = any> = XOR<
+//   { handler: (...args: T[]) => React.ReactNode },
+//   { children: (...args: T[]) => React.ReactNode }
+// >;
