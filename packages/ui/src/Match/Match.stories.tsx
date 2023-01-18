@@ -154,11 +154,13 @@ export const WithReducer: StoryFn<typeof Component> = () => {
               </>
             )}
           </MatchWithReducer.With>
-          <MatchWithReducer.With pattern={{ status: "success" }}>
-            {({ data }) => (
+          <MatchWithReducer.With
+            pattern={{ status: "success", data: { value: P.select("result") } }}
+          >
+            {({ result }) => (
               <>
                 <h1>fetch Success!</h1>
-                <p>data: {data.value}</p>
+                <p>data: {result}</p>
               </>
             )}
           </MatchWithReducer.With>

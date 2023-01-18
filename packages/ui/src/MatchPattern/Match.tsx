@@ -18,12 +18,15 @@ import * as P from "../ts-pattern/patterns";
 import type { Pattern } from "../ts-pattern/types/Pattern";
 import type { MatchedValue, PickReturnValue } from "../ts-pattern/types/Match";
 import type { FindSelected } from "../ts-pattern/types/FindSelected";
-import type { InvertPattern } from "../ts-pattern/types/InvertPattern";
+import type {
+  InvertPattern,
+  InvertPatternForExclude,
+} from "../ts-pattern/types/InvertPattern";
 
 interface MatchProps<T = any> {
   state: MatchState<T>;
   value: T | undefined;
-  children: React.ReactElement<WithProps<T>>[];
+  children: Elements;
 }
 
 /**
@@ -155,20 +158,25 @@ function Run({ state, ...props }: MatchProps<any>) {
 }
 
 type WithProps<
-  TPattern,
-  TGuard = TPattern,
-  TValue extends MatchedValue<TPattern, InvertPattern<TPattern>> = any,
+  TState,
+  TPattern = Pattern<TState>,
+  TGuard = (value: MatchedValue<TState, InvertPattern<TPattern>>) => unknown,
+  TValue = MatchedValue<TState, InvertPattern<TPattern>>,
 > = {
-  state?: MatchState<TPattern>;
-  pattern: Pattern<TPattern> | Array<Pattern<TPattern>>;
-  guard?: (value: TPattern) => boolean;
+  state?: MatchState<TState>;
+  pattern: TPattern | Array<TPattern>;
+  guard?: TGuard;
   handler?: (
-    selections: PickReturnValue<TPattern, TGuard>,
-    value: TPattern,
+    selections: FindSelected<TValue, TPattern>,
+    value: TValue,
   ) => Children;
   children?: (
     selections: FindSelected<TValue, TPattern>,
-    value: TPattern,
+    value: TGuard extends (value: any) => value is infer narrowed
+      ? Exclude<TState, narrowed>
+      : [InvertPatternForExclude<TPattern, TValue>] extends [infer excluded]
+      ? Exclude<TState, excluded>
+      : never,
   ) => Children;
   /** @private */
   id?: number;
@@ -319,12 +327,12 @@ export function useMatchState<i>(props: MatchStateProps<i>) {
   const defaultValue = useInitialValue(
     props.defaultValue || (undefined as MatchState<i>["value"]),
   );
-  const [value, setValue] = useControlledState(
+  const [value, setValue] = useControlledState<MatchState["value"]>(
     defaultValue,
     props.value,
     props.setValue,
   );
-  const [cases, setCases] = useControlledState([]);
+  const [cases, setCases] = useControlledState<MatchState["cases"]>([]);
 
   const state = React.useMemo<MatchState<i>>(
     () => ({
@@ -360,6 +368,8 @@ type MatchStateProps<TValue> = {
 };
 
 type Children = Array<React.ReactNode> | React.ReactNode;
+
+type Elements = Array<React.ReactElement> | React.ReactElement;
 
 // type XOR<T, U> = T | U extends object
 //   ? (Without<T, U> & U) | (Without<U, T> & T)

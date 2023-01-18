@@ -1,6 +1,7 @@
 import type { Meta, StoryFn } from "@storybook/react";
 import React from "react";
 import { match, P } from "../ts-pattern";
+import type { Pattern } from "../ts-pattern/patterns";
 
 import { Match, Otherwise, useMatchState, When, With } from "./Match";
 
@@ -38,14 +39,15 @@ export const Default: StoryFn<typeof Match> = () => {
           <With
             pattern={"green" as Colors}
             handler={(value) => (
-              <div style={{ color: value }}>{String(value)}</div>
+              <div style={{ color: value as string }}>{String(value)}</div>
             )}
           />
           <With
-            pattern="blue"
+            state={match}
+            pattern={"blue" as Colors}
             guard={(x) => x !== "blue"}
             handler={(value) => (
-              <div style={{ color: value }}>
+              <div style={{ color: value as string }}>
                 Never show! Value: {String(value)}
               </div>
             )}
@@ -141,19 +143,30 @@ export const WithReducer: StoryFn<typeof Match> = () => {
       </div>
       <div>
         <Match state={match} value={state}>
-          <With pattern={{ status: "error" }}>
-            {({ error }) => (
+          <With
+            pattern={
+              { status: "error" } as Pattern<
+                Extract<State, { status: "error" }>
+              >
+            }
+          >
+            {(selections, value) => (
               <>
                 <h1>Error!</h1>
-                <p>the error message is "{error.message}"</p>
+                <p>the error message is "{selections.error.message}"</p>
+                <p>value: {JSON.stringify(value)}</p>
               </>
             )}
           </With>
-          <With pattern={{ status: "success" }}>
-            {({ data }) => (
+          <With
+            state={match}
+            pattern={{ status: "success", data: { value: P.select("result") } }}
+          >
+            {(selections, value) => (
               <>
                 <h1>fetch Success!</h1>
-                <p>data: {data.value}</p>
+                <p>data: {JSON.stringify(selections)}</p>
+                <p>value: {JSON.stringify(value)}</p>
               </>
             )}
           </With>
