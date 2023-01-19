@@ -2,5 +2,6 @@ packages:
   - apps/nextjs
   - packages/api
   - packages/auth
+  - packages/ts-pattern
   - packages/ui
   - packages/config/*

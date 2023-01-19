@@ -1,70 +1,64 @@
 import type { Meta, StoryFn } from "@storybook/react";
 import React from "react";
-import { match, P } from "ts-pattern";
+import { match, P } from "@notion-comments/ts-pattern";
 
-import { Match as Component, createMatch } from "./Match";
+import { Match, useMatchState } from "./Match";
 
 const meta = {
   title: "UI/Match",
-  component: Component as React.FC<any>,
+  component: Match as React.FC<any>,
   tags: ["autodocs"],
 } satisfies Meta<typeof Match>;
 
 export default meta;
 
 const COLORS = ["red", "green", "blue", "hot fucking pink"] as const;
+type Colors = (typeof COLORS)[number] | undefined;
 
-const Match = createMatch<(typeof COLORS)[number]>();
-
-export const WithThen: StoryFn<typeof Component> = () => {
+export const Default: StoryFn<typeof Match> = () => {
   const [color, setColor] = React.useState(0);
+
+  const [match, { With, When, Otherwise }] = useMatchState<Colors | undefined>({
+    value: COLORS[color],
+  });
 
   return (
     <>
-      <button onClick={() => setColor((x) => (x + 1) % COLORS.length)}>
-        {COLORS[color]}
+      <button onClick={() => setColor((x) => (x + 1) % (COLORS.length + 1))}>
+        {COLORS[color] ?? "wrong color"}
       </button>
       <div>
-        <Match.Root expression={COLORS[color]}>
-          <Match.With
-            pattern="red"
-            then={(value) => <div style={{ color: value }}>{value}</div>}
+        <Match state={match}>
+          <With
+            pattern={["red", "blue"]}
+            handler={(value) => (
+              <div style={{ color: "red" }}>{String(value)}</div>
+            )}
           />
-          <Match.With
-            pattern="green"
-            then={(value) => <div style={{ color: value }}>{value}</div>}
+          <With
+            pattern={"green"}
+            handler={(value) => (
+              <div style={{ color: value as string }}>{String(value)}</div>
+            )}
           />
-          <Match.With
-            pattern="blue"
-            then={(value) => <div style={{ color: value }}>{value}</div>}
+          <With
+            pattern={"blue"}
+            predicate={(color) => color !== "blue"}
+            handler={(selections, value) => (
+              <div style={{ color: value as string }}>
+                Never shows! Selection: {String(selections)}. Value:{" "}
+                {String(value)}
+              </div>
+            )}
           />
-          <Match.Otherwise then={(value) => <div>{value}</div>} />
-        </Match.Root>
-      </div>
-    </>
-  );
-};
-
-export const WithChildren: StoryFn<typeof Component> = () => {
-  const [color, setColor] = React.useState(0);
-
-  return (
-    <>
-      <button onClick={() => setColor((x) => (x + 1) % COLORS.length)}>
-        {COLORS[color]}
-      </button>
-      <div>
-        <Match.Root expression={COLORS[color]}>
-          <Match.With pattern="red">
-            {(value) => <div style={{ color: value }}>{value}</div>}
-          </Match.With>
-          <Match.With pattern="green">
-            {(value) => <div style={{ color: value }}>{value}</div>}
-          </Match.With>
-          <Match.With pattern="blue">
-            {(value) => <div style={{ color: value }}>{value}</div>}
-          </Match.With>
-        </Match.Root>
+          <When
+            predicate={(x) => x === "hot fucking pink"}
+            handler={<div>When!</div>}
+          />
+          <Otherwise
+            handler={(value) => <div>Nope! Value: {String(value)}</div>}
+          />
+        </Match>
       </div>
     </>
   );
@@ -106,11 +100,13 @@ const reducer = (state: State, event: Event): State =>
     .with(P._, () => state)
     .otherwise(() => state);
 
-const MatchWithReducer = createMatch<State>();
-
-export const WithReducer: StoryFn<typeof Component> = () => {
+export const WithReducer: StoryFn<typeof Match> = () => {
   const [state, dispatch] = React.useReducer(reducer, initState);
   const isLoading = state.status === "loading";
+
+  const [match, { With, Otherwise }] = useMatchState({
+    value: state,
+  });
 
   return (
     <>
@@ -145,46 +141,47 @@ export const WithReducer: StoryFn<typeof Component> = () => {
         </button>
       </div>
       <div>
-        <MatchWithReducer.Root expression={state}>
-          <MatchWithReducer.With pattern={{ status: "error" }}>
-            {({ error }) => (
+        <Match state={match}>
+          <With pattern={{ status: "error" }}>
+            {(selections, value) => (
               <>
                 <h1>Error!</h1>
-                <p>the error message is "{error.message}"</p>
+                <p>the error message is "{selections.error.message}"</p>
+                <p>value: {JSON.stringify(value)}</p>
               </>
             )}
-          </MatchWithReducer.With>
-          <MatchWithReducer.With
+          </With>
+          <With
+            state={match}
             pattern={{ status: "success", data: { value: P.select("result") } }}
           >
-            {({ result }) => (
+            {(selections, value) => (
               <>
                 <h1>fetch Success!</h1>
-                <p>data: {result}</p>
+                <p>data: {JSON.stringify(selections)}</p>
+                <p>value: {JSON.stringify(value)}</p>
               </>
             )}
-          </MatchWithReducer.With>
-          <MatchWithReducer.With pattern={{ status: "idle" }}>
+          </With>
+          <With pattern={{ status: "idle" }}>
             {({ status }) => (
               <>
                 <h1 className="capitalize">{status}</h1>
                 <p>Nothing is happening at the moment</p>
               </>
             )}
-          </MatchWithReducer.With>
-          <MatchWithReducer.With pattern={{ status: "loading" }}>
-            {({ status }) => (
+          </With>
+          <With pattern={{ status: "loading" }}>
+            {(selections) => (
               <>
-                <h1 className="capitalize">{status}...</h1>
+                <h1 className="capitalize">{selections.status}...</h1>
                 <p>(you can click on success, error, or cancel)</p>
               </>
             )}
-          </MatchWithReducer.With>
-          <MatchWithReducer.Otherwise>Otherwise</MatchWithReducer.Otherwise>
-        </MatchWithReducer.Root>
+          </With>
+          <Otherwise>{() => <div>{"Otherwise"}</div>}</Otherwise>
+        </Match>
       </div>
     </>
   );
 };
-
-// TODO: more examples with different patterns: https://github.com/gvergnaud/ts-pattern
