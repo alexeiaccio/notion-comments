@@ -1,12 +1,11 @@
-import { Else, If, Show } from "@notion-comments/ui";
-import { ElseIf, Then } from "@notion-comments/ui/src/If";
+import { If, Else, Then, ElseIf, useAsyncValue } from "@notion-comments/ui";
 import type { NextPage } from "next";
 import { signIn, signOut } from "next-auth/react";
 import Head from "next/head";
 import { useState } from "react";
 import { QueryBoundary } from "../components/QueryBoundary";
 import { ShowQuery } from "../components/ShowQuery";
-import { trpc } from "../utils/trpc";
+import { RouterOutputs, trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
   return (
@@ -53,7 +52,7 @@ const AuthShowcase: React.FC = () => {
               );
             }}
           >
-            {(data) => <SecretMessage message={data} />}
+            <SecretMessage />
           </ShowQuery>
           <If test={showMessage}>
             <QueryBoundary
@@ -92,16 +91,17 @@ const AuthShowcase: React.FC = () => {
   );
 };
 
-function SecretMessage({ message }: { message?: string }) {
+function SecretMessage() {
+  const data = useAsyncValue<RouterOutputs["auth"]["getSecretMessage"]>();
   const { data: secretMessage } = trpc.auth.getSecretMessage.useQuery(
     undefined,
-    { initialData: message },
+    { initialData: data },
   );
 
   return (
     <If test={secretMessage}>
       <Then test={secretMessage}>{(message) => <span> - {message}</span>}</Then>
-      <ElseIf test={secretMessage !== undefined}>{"No message"}</ElseIf>
+      <Else>{"No message"}</Else>
     </If>
   );
 }
@@ -117,7 +117,7 @@ function SecretMessageSuspense() {
       <Then test={secretMessage}>{(message) => <span> - {message}</span>}</Then>
       <ElseIf test={error}>
         <Then test={error}>{(e) => <span> - {e.message}</span>}</Then>
-        <ElseIf test={secretMessage !== undefined}>{"No message"}</ElseIf>
+        <Else>{"No message"}</Else>
       </ElseIf>
     </If>
   );

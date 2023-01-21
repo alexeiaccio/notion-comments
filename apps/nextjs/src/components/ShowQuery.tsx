@@ -8,7 +8,7 @@ export function ShowQuery<T>({
   errorElement,
 }: {
   when: () => Promise<T>;
-  children: (data: T) => React.ReactNode;
+  children: ((data: T) => React.ReactNode) | React.ReactNode;
   fallback?: React.ReactNode;
   errorElement?: (props: {
     error: Error;
@@ -34,7 +34,9 @@ export function ShowQuery<T>({
           : undefined
       }
     >
-      {(data: T) => <>{children(data)}</>}
+      {(data: T) => (
+        <>{typeof children === "function" ? children(data) : children}</>
+      )}
     </Show>
   );
 }

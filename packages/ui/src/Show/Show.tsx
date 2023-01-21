@@ -3,8 +3,8 @@ import React, { Suspense } from "react";
 export interface ShowProps<T = any> {
   when: TrackedPromise<T> | T;
   children: React.ReactNode | AwaitResolveRenderFunction<T>;
-  errorElement?: React.ReactNode | AwaitResolveRenderFunction<Error>;
   fallback?: React.ReactNode;
+  errorElement?: React.ReactNode | AwaitResolveRenderFunction<Error>;
 }
 
 /**
