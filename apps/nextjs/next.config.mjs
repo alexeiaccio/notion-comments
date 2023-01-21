@@ -14,10 +14,6 @@ const config = {
     "@notion-comments/auth",
     "@notion-comments/ui",
   ],
-  // We already do linting on GH actions
-  // eslint: {
-  //   ignoreDuringBuilds: !!process.env.CI,
-  // },
 };
 
 export default config;

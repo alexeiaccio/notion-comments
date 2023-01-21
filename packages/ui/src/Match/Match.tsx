@@ -45,7 +45,7 @@ interface MatchProps<T> {
  *   <Othewise handler={<div>Nope!</div>}>
  * </Match>
  * ```
- * TODO: Accessibility
+ * TODO: Accessibility – via `aria-describedby`
  */
 export function Match<T = any>({ state, ...props }: MatchProps<T>) {
   const { wrapElement } = useStoreProvider({ state, ...props }, MatchContext);

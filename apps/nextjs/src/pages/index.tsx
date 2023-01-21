@@ -1,10 +1,11 @@
-import { Await, Else, If, Show } from "@notion-comments/ui";
+import { Else, If, Show } from "@notion-comments/ui";
 import { ElseIf, Then } from "@notion-comments/ui/src/If";
 import type { NextPage } from "next";
 import { signIn, signOut } from "next-auth/react";
 import Head from "next/head";
 import { useState } from "react";
-import { QueryBoundary, ShowQuery } from "../components/query";
+import { QueryBoundary } from "../components/QueryBoundary";
+import { ShowQuery } from "../components/ShowQuery";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
@@ -33,33 +34,39 @@ const AuthShowcase: React.FC = () => {
   const { data: session } = trpc.auth.getSession.useQuery();
   const context = trpc.useContext();
   const [showMessage, setShowMessage] = useState(false);
-  const messagePromise = showMessage
-    ? context.auth.getSecretMessage.fetch()
-    : new Promise<string>(() => {});
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <If test={session?.user}>
         <p className="text-center text-2xl text-white">
           {session && <span>Logged in as {session?.user?.name}</span>}
-          <Show
-            when={messagePromise}
+          <ShowQuery
+            when={context.auth.getSecretMessage.fetch}
             fallback={<span> – loading...</span>}
-            errorElement={(e) => <span> - {e.message}</span>}
-          >
-            {(message) => <SecretMessage message={message} />}
-          </Show>
-          <If test={showMessage}>
-            <QueryBoundary
-              // when={messagePromise}
-              fallback={<span> – loading...</span>}
-              fallbackRender={({ error, resetErrorBoundary }) => (
+            errorElement={({ error, resetErrorBoundary }) => {
+              return (
                 <span>
                   {" - "}
                   {error.message}{" "}
                   <button onClick={resetErrorBoundary}>Retry</button>
                 </span>
-              )}
+              );
+            }}
+          >
+            {(data) => <SecretMessage message={data} />}
+          </ShowQuery>
+          <If test={showMessage}>
+            <QueryBoundary
+              fallback={<span> – loading...</span>}
+              fallbackRender={({ error, resetErrorBoundary }) => {
+                return (
+                  <span>
+                    {" - "}
+                    {error.message}{" "}
+                    <button onClick={resetErrorBoundary}>Retry</button>
+                  </span>
+                );
+              }}
             >
               <SecretMessageSuspense />
             </QueryBoundary>
@@ -92,18 +99,17 @@ function SecretMessage({ message }: { message?: string }) {
   );
 
   return (
-    <If
-      test={secretMessage}
-      then={(message) => <span> - {message}</span>}
-      else={"No message"}
-    />
+    <If test={secretMessage}>
+      <Then test={secretMessage}>{(message) => <span> - {message}</span>}</Then>
+      <ElseIf test={secretMessage !== undefined}>{"No message"}</ElseIf>
+    </If>
   );
 }
 
-function SecretMessageSuspense({ message }: { message?: string }) {
+function SecretMessageSuspense() {
   const { data: secretMessage, error } = trpc.auth.getSecretMessage.useQuery(
     undefined,
-    { initialData: message, suspense: true, useErrorBoundary: true },
+    { suspense: true, useErrorBoundary: true },
   );
 
   return (
@@ -111,7 +117,7 @@ function SecretMessageSuspense({ message }: { message?: string }) {
       <Then test={secretMessage}>{(message) => <span> - {message}</span>}</Then>
       <ElseIf test={error}>
         <Then test={error}>{(e) => <span> - {e.message}</span>}</Then>
-        <Else>{"No message"}</Else>
+        <ElseIf test={secretMessage !== undefined}>{"No message"}</ElseIf>
       </ElseIf>
     </If>
   );
